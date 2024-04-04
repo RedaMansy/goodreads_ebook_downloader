@@ -135,7 +135,6 @@ def download_epub(url, filename):
         # Fetch HTML content from the URL
         # full_url = zlibrary + url
         print(url)
-        # response = requests.get(url, auth=('ridamansy@gmail.com', 'RfNNB5gYZoXyhU'))
         response.raise_for_status()  # Raise an exception for bad status codes
         html_content = response.text
 
