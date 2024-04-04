@@ -1,4 +1,6 @@
 import requests
+import wget
+import subprocess
 from bs4 import BeautifulSoup
 
 url = "https://www.goodreads.com/review/list/35565370-reda?ref=nav_mybooks&shelf=testshelf"
@@ -91,26 +93,69 @@ book_link = search_for_book("Dune")
 #             return None
     
 
+def auth(book_link):
+    cookies = {
+    'selectedSiteMode': 'books',
+    'remix_userkey': '9c148bc54fc04de44f7280ac184ecb98',
+    'remix_userid': '33645309',
+    'redirects_count': '%7B%22auth%22%3A1%2C%22hide-auth-params%22%3A1%7D',
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-GB,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://singlelogin.re/',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        # 'Cookie': 'selectedSiteMode=books; remix_userkey=9c148bc54fc04de44f7280ac184ecb98; remix_userid=33645309; redirects_count=%7B%22auth%22%3A1%2C%22hide-auth-params%22%3A1%7D',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-User': '?1',
+        # Requests doesn't support trailers
+        # 'TE': 'trailers',
+    }
+
+    params = {
+        'ts': '2301',
+    }
+
+    response = requests.get(f'https://singlelogin.re{book_link}', params=params, cookies=cookies, headers=headers)
+
+    return response
+
 def download_epub(url, filename):
+    
+    response = auth(book_link)
+
     try:
         # Fetch HTML content from the URL
         # full_url = zlibrary + url
         print(url)
-        response = requests.get(url)
+        # response = requests.get(url, auth=('ridamansy@gmail.com', 'RfNNB5gYZoXyhU'))
         response.raise_for_status()  # Raise an exception for bad status codes
         html_content = response.text
 
         # Parse HTML content with BeautifulSoup
         soup = BeautifulSoup(response.content, 'html.parser')
-        with open("dump.txt", "w") as f:
-            f.write(soup) 
+        with open("dump.html", "w") as f:
+            f.write(soup.prettify()) 
         # Find the download button
-        download_button = soup.find_all('a', class_='btn btn-primary addDownloadedBook')
-        print(download_button)
+        download_button = soup.find('a', class_='btn btn-primary addDownloadedBook')
+        print("DOWNLOAD BUTTON LINK: ", download_button["href"])
         if download_button:
-            download_url = download_button['href']
-            response = requests.get(download_url)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            download_url = requests.get("https://singlelogin.re" + download_button['href'])
+            print(download_url)
+            print(download_url.headers)
+            actualURL = download_url.headers["location"]
+            print(actualURL)
+            # response = requests.get(download_url)
+            # response = wget.download(download_url)
+            # subprocess.run(["wget", "-O", "THISISIT.epub", actualURL])
+            # response.raise_for_status()  # Raise an exception for bad status codes
 
             # Open a file in binary write mode and write the response content to it
             with open(filename, 'wb') as file:
