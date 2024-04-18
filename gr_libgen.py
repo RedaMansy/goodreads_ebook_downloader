@@ -3,7 +3,7 @@ import wget
 import subprocess
 from bs4 import BeautifulSoup
 
-url = "https://www.goodreads.com/review/list/35565370-reda?ref=nav_mybooks&shelf=testshelf"
+url = "https://www.goodreads.com/review/list/35565370-reda?shelf=testshelf"
 zlibrary = "https://singlelogin.re"
 
 cached_titles = {}
@@ -11,9 +11,13 @@ cached_titles = {}
 def extract_book_titles(url):
 
     try:
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',}
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
         
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        # response = requests.get(url)
+        # response.raise_for_status()  # Raise an exception for bad status codes
         soup = BeautifulSoup(response.content, "html.parser") 
 
         # Find all titles and decompose label and span tags
@@ -37,8 +41,8 @@ def extract_book_titles(url):
         print(f"Error fetching URL: {e}")
         return []
 
-titles = extract_book_titles(url)
-print(titles)
+# titles = extract_book_titles(url)
+# print(titles)
     
 cached_links = {}
 
